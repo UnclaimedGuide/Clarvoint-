@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Clarvoint</title>
+  <meta name="description" content="Clarvoint — tap to reveal a whimsical past life." />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
@@ -50,28 +51,34 @@
   </style>
 </head>
 <body>
-  <div class="card">
+  <main class="card" role="main">
     <h1>Clarvoint</h1>
     <p>Tap to glimpse a past life.</p>
-    <button onclick="generate()">Reveal Past Life</button>
-    <div id="result"></div>
-  </div>
+    <button id="reveal" type="button">Reveal Past Life</button>
+    <div id="result" role="status" aria-live="polite" aria-atomic="true"></div>
+  </main>
 
   <script>
-    const lives = [
-      "A traveling healer in ancient Anatolia, known for calming voices.",
-      "A lighthouse keeper who watched storms and saved strangers.",
-      "A monk who copied texts by candlelight in the 12th century.",
-      "A desert guide who navigated by stars, not maps.",
-      "A quiet artisan who made instruments that outlived them."
-    ];
+    (function () {
+      const lives = [
+        "A traveling healer in ancient Anatolia, known for calming voices.",
+        "A lighthouse keeper who watched storms and saved strangers.",
+        "A monk who copied texts by candlelight in the 12th century.",
+        "A desert guide who navigated by stars, not maps.",
+        "A quiet artisan who made instruments that outlived them."
+      ];
 
-    function generate() {
-      const result = document.getElementById("result");
-      const life = lives[Math.floor(Math.random() * lives.length)];
-      result.textContent = life;
-      result.classList.add("show");
-    }
+      const btn = document.getElementById('reveal');
+      const result = document.getElementById('result');
+
+      function generate() {
+        const life = lives[Math.floor(Math.random() * lives.length)];
+        result.textContent = life;
+        result.classList.add('show');
+      }
+
+      btn.addEventListener('click', generate);
+    })();
   </script>
 </body>
 </html>
