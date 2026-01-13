@@ -1,231 +1,229 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
 <title>Clarvoint</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#020617">
+<meta name="description" content="A symbolic, guided reflection across recurring lives.">
+
+<link rel="manifest" href="data:application/manifest+json,{
+  &quot;name&quot;:&quot;Clarvoint&quot;,
+  &quot;short_name&quot;:&quot;Clarvoint&quot;,
+  &quot;start_url&quot;:&quot;.&quot;,
+  &quot;display&quot;:&quot;standalone&quot;,
+  &quot;background_color&quot;:&quot;#020617&quot;,
+  &quot;theme_color&quot;:&quot;#020617&quot;
+}">
 
 <style>
 body {
   margin: 0;
   font-family: system-ui, -apple-system, BlinkMacSystemFont;
-  background: radial-gradient(circle at top, #0b1c2d, #020611);
-  color: #e6f1ff;
+  background: radial-gradient(circle at top, #0f1f2a, #050b12);
+  color: #e5e7eb;
   display: flex;
-  align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  align-items: center;
+  height: 100vh;
 }
 
 .card {
+  background: #020617;
   width: 92%;
   max-width: 420px;
-  background: rgba(10,20,40,0.88);
-  border-radius: 20px;
-  padding: 24px;
-  box-shadow: 0 0 40px rgba(0,0,0,0.6);
+  padding: 2rem;
+  border-radius: 24px;
+  box-shadow: 0 30px 60px rgba(0,0,0,.7);
   text-align: center;
 }
 
 h1 {
-  color: #4fc3ff;
-  margin-bottom: 8px;
+  color: #38bdf8;
+  font-size: 2rem;
+  margin-bottom: .4rem;
+}
+
+p {
+  line-height: 1.65;
+  font-size: 1.05rem;
+  margin: 1rem 0;
 }
 
 button {
-  background: #4fc3ff;
+  padding: .8rem 1.5rem;
+  border-radius: 999px;
   border: none;
-  color: #001;
-  padding: 14px 22px;
-  border-radius: 30px;
-  font-size: 16px;
-  margin-top: 16px;
+  background: #38bdf8;
+  color: #020617;
+  font-size: 1rem;
   cursor: pointer;
+  margin-top: .8rem;
 }
 
-button.secondary {
-  background: rgba(255,255,255,0.08);
-  color: #e6f1ff;
-  margin-left: 8px;
+.secondary {
+  background: transparent;
+  color: #38bdf8;
+  border: 1px solid #38bdf8;
 }
 
-button:disabled {
-  opacity: 0.6;
+.small {
+  font-size: .8rem;
+  opacity: .6;
 }
 
-.fade {
-  animation: fade 2s ease-in-out infinite alternate;
-}
+.hidden { display: none; }
 
-@keyframes fade {
-  from { opacity: 0.5; }
-  to { opacity: 1; }
-}
-
-.hidden {
-  display: none;
-}
-
-img {
+video, canvas {
   width: 100%;
   border-radius: 14px;
-  margin-top: 12px;
-}
-
-.controls {
-  margin-top: 12px;
+  margin-top: 1rem;
 }
 </style>
 </head>
 
 <body>
-<div class="card">
+<main class="card">
+  <h1>Clarvoint</h1>
+  <p id="text"></p>
 
-<h1>Clarvoint</h1>
+  <button id="startBtn">Begin Journey</button>
 
-<p id="text">
-Your face is not who you are.<br>
-But it carries echoes.
-</p>
+  <video id="video" class="hidden" autoplay playsinline></video>
+  <canvas id="canvas" class="hidden"></canvas>
+  <button id="captureBtn" class="hidden">Capture</button>
 
-<div class="controls">
-  <button id="mainBtn">Continue</button>
-  <button id="soundBtn" class="secondary hidden">Sound: Off</button>
-</div>
+  <button id="shareBtn" class="hidden secondary">Download Reflection</button>
+  <button id="supportBtn" class="hidden secondary">Support Clarvoint</button>
 
-<input type="file" accept="image/*" capture="user" id="camera" class="hidden"/>
-<img id="preview" class="hidden"/>
+  <p class="small">For reflection only. Nothing is stored.</p>
+</main>
 
-<!-- Ambient Sound -->
-<audio id="ambient" loop preload="auto">
-  <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_2b1d7b6cbe.mp3" type="audio/mpeg">
+<audio id="tone" loop>
+  <source src="https://cdn.pixabay.com/audio/2022/10/30/audio_1b1d1b0c46.mp3">
 </audio>
-
-</div>
 
 <script>
 const text = document.getElementById("text");
-const mainBtn = document.getElementById("mainBtn");
-const soundBtn = document.getElementById("soundBtn");
-const cam = document.getElementById("camera");
-const img = document.getElementById("preview");
-const ambient = document.getElementById("ambient");
+const startBtn = document.getElementById("startBtn");
+const captureBtn = document.getElementById("captureBtn");
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const shareBtn = document.getElementById("shareBtn");
+const supportBtn = document.getElementById("supportBtn");
+const tone = document.getElementById("tone");
 
-let step = 0;
-let soundOn = false;
-
-const pastLives = [
-  {
-    life: "You were a keeper of sacred knowledge, sworn to silence.",
-    place: "A stone monastery where winters lasted years.",
-    death: "Peacefully, after preserving words meant to survive fire.",
-    lesson: "Patience and devotion.",
-    echo: "You still feel drawn to meaning beneath language."
-  },
-  {
-    life: "You watched the sea and guarded lives through storms.",
-    place: "A lonely lighthouse on a fractured coast.",
-    death: "Lost during a final rescue.",
-    lesson: "Responsibility without recognition.",
-    echo: "You remain calm when others panic."
-  },
-  {
-    life: "You healed with hands and intuition before medicine had names.",
-    place: "A forest settlement far from power.",
-    death: "Exiled, not defeated.",
-    lesson: "Trust your inner knowing.",
-    echo: "You sense truth before evidence."
-  }
+const lives = [
+{
+  thread: "the watcher",
+  arc: [
+    "You once stood watch at the edge of danger.",
+    "Later, you learned to sense trouble before it arrived.",
+    "Now, you notice what others overlook."
+  ],
+  mirror: "Your awareness is not anxiety — it is inheritance."
+},
+{
+  thread: "the healer",
+  arc: [
+    "You soothed fear before you knew words.",
+    "You learned that presence heals faster than advice.",
+    "Now, people calm down simply by being near you."
+  ],
+  mirror: "You do not need fixing — you are the space where fixing happens."
+},
+{
+  thread: "the maker",
+  arc: [
+    "You built quietly for survival.",
+    "You shaped tools others depended on.",
+    "Now, usefulness matters more to you than praise."
+  ],
+  mirror: "You measure worth by what endures."
+}
 ];
 
-let chosen = pastLives[Math.floor(Math.random() * pastLives.length)];
-let revealStep = 0;
+let chosen = null;
 
-mainBtn.onclick = async () => {
-  step++;
+text.innerHTML = `
+This is a guided symbolic reflection.<br><br>
+You will take a selfie to mark the beginning.<br>
+The image is never stored or analyzed.
+`;
 
-  if (step === 1) {
-    text.innerHTML = `
-      If you wish,<br>
-      you may offer your image.<br><br>
-      This image is never stored.
-    `;
-    mainBtn.textContent = "Take or Upload Selfie";
-    soundBtn.classList.remove("hidden");
-  }
+startBtn.onclick = async () => {
+  startBtn.classList.add("hidden");
+  text.innerHTML = "Allow the camera.<br><br>Breathe once.";
 
-  else if (step === 2) {
-    cam.click();
-  }
+  video.classList.remove("hidden");
+  captureBtn.classList.remove("hidden");
 
-  else if (step === 3) {
-    text.classList.add("fade");
-    text.innerHTML = `
-      Stillness…<br>
-      Let the surface fade.<br>
-      Let what remains speak.
-    `;
-    mainBtn.disabled = true;
+  tone.volume = 0.25;
+  tone.play().catch(()=>{});
 
-    if (soundOn) ambient.play();
-
-    setTimeout(() => {
-      text.classList.remove("fade");
-      reveal();
-      mainBtn.disabled = false;
-      mainBtn.textContent = "Continue";
-    }, 8000);
-  }
-
-  else {
-    reveal();
-  }
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "user" },
+    audio: false
+  });
+  video.srcObject = stream;
 };
 
-cam.onchange = e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  img.src = URL.createObjectURL(file);
-  img.classList.remove("hidden");
-  step = 2;
-  mainBtn.textContent = "Begin Reading";
+captureBtn.onclick = () => {
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext("2d").drawImage(video, 0, 0);
+
+  video.srcObject.getTracks().forEach(t => t.stop());
+  video.classList.add("hidden");
+  captureBtn.classList.add("hidden");
+
+  chosen = lives[Math.floor(Math.random() * lives.length)];
+
+  let i = 0;
+  function nextLine() {
+    if (i < chosen.arc.length) {
+      text.innerHTML = chosen.arc[i];
+      i++;
+      setTimeout(nextLine, 3500);
+    } else {
+      finish();
+    }
+  }
+  nextLine();
 };
 
-function reveal() {
-  revealStep++;
-
-  if (revealStep === 1) {
-    text.innerHTML = chosen.life;
-  }
-  else if (revealStep === 2) {
-    text.innerHTML = "Place:<br>" + chosen.place;
-  }
-  else if (revealStep === 3) {
-    text.innerHTML = "End:<br>" + chosen.death;
-  }
-  else if (revealStep === 4) {
-    text.innerHTML = "What you carried forward:<br>" + chosen.lesson;
-  }
-  else if (revealStep === 5) {
-    text.innerHTML = "Why it still echoes:<br>" + chosen.echo;
-    mainBtn.textContent = "Close";
-  }
-  else {
-    text.innerHTML = `
-      The past is not behind you.<br>
-      It walks beside you.<br><br>
-      Return gently.
-    `;
-    mainBtn.style.display = "none";
-  }
+function finish() {
+  text.innerHTML = `
+    <strong>Thread:</strong> ${chosen.thread}<br><br>
+    ${chosen.mirror}<br><br>
+    <em>This pattern appears when reflection is needed.</em>
+  `;
+  shareBtn.classList.remove("hidden");
+  supportBtn.classList.remove("hidden");
 }
 
-soundBtn.onclick = () => {
-  soundOn = !soundOn;
-  soundBtn.textContent = soundOn ? "Sound: On" : "Sound: Off";
-  if (!soundOn) ambient.pause();
+shareBtn.onclick = () => {
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#020617";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = "#38bdf8";
+  ctx.font = "24px sans-serif";
+  ctx.fillText("Clarvoint", 20, 40);
+  ctx.fillStyle = "#e5e7eb";
+  ctx.font = "18px sans-serif";
+  ctx.fillText(`Thread: ${chosen.thread}`, 20, 80);
+  ctx.fillText(chosen.mirror, 20, 120);
+
+  const link = document.createElement("a");
+  link.download = "clarvoint-reflection.png";
+  link.href = canvas.toDataURL();
+  link.click();
+};
+
+supportBtn.onclick = () => {
+  window.open("https://buymeacoffee.com/yourname", "_blank");
 };
 </script>
-
 </body>
 </html>
