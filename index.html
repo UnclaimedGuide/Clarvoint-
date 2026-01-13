@@ -1,5 +1,223 @@
 <!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Clarvoint</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1f33">
+
+<link rel="manifest" href="data:application/manifest+json,{
+  &quot;name&quot;:&quot;Clarvoint&quot;,
+  &quot;short_name&quot;:&quot;Clarvoint&quot;,
+  &quot;display&quot;:&quot;standalone&quot;,
+  &quot;background_color&quot;:&quot;#05080f&quot;,
+  &quot;theme_color&quot;:&quot;#0b1f33&quot;
+}">
+
+<style>
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system;
+  background: radial-gradient(circle at top, #0b1f33, #05080f);
+  color: #e6f1ff;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card {
+  width: 94%;
+  max-width: 440px;
+  background: rgba(5,10,20,0.9);
+  border-radius: 24px;
+  padding: 26px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.7);
+}
+h1 {
+  text-align: center;
+  color: #49c7ff;
+  margin-bottom: 6px;
+}
+.sub {
+  text-align: center;
+  opacity: .8;
+  margin-bottom: 18px;
+}
+button, .upload {
+  width: 100%;
+  padding: 14px;
+  margin-top: 12px;
+  border-radius: 28px;
+  font-size: 16px;
+}
+button {
+  background: transparent;
+  color: #49c7ff;
+  border: 1px solid #49c7ff;
+}
+button.primary {
+  background: #49c7ff;
+  color: #04121f;
+  border: none;
+}
+.upload {
+  border: 1px dashed #49c7ff;
+  color: #49c7ff;
+  text-align: center;
+}
+input { display:none; }
+
+.layer {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all .8s ease;
+  margin-top: 18px;
+}
+.layer.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.layer h3 {
+  color: #49c7ff;
+  margin-bottom: 4px;
+}
+
+canvas {
+  width: 100%;
+  border-radius: 14px;
+  margin-top: 14px;
+  background: #020409;
+}
+
+.footer {
+  margin-top: 18px;
+  font-size: 12px;
+  opacity: .6;
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+<div class="card">
+  <h1>Clarvoint</h1>
+  <div class="sub">A symbolic past-life reflection</div>
+
+  <label class="upload">
+    Optional: take or upload a selfie
+    <input type="file" accept="image/*">
+  </label>
+
+  <button class="primary" onclick="begin()">Begin Reflection</button>
+
+  <canvas id="portrait" height="320"></canvas>
+
+  <div id="origin" class="layer"></div>
+  <div id="role" class="layer"></div>
+  <div id="life" class="layer"></div>
+  <div id="death" class="layer"></div>
+  <div id="echo" class="layer"></div>
+
+  <button id="download" style="display:none" onclick="download()">Download</button>
+  <button id="share" style="display:none" onclick="share()">Share</button>
+
+  <div class="footer">
+    For reflection only. No identification is made. Nothing is stored.
+  </div>
+</div>
+
+<script>
+const data = {
+  origin: [
+    "You emerged during a time of quiet instability.",
+    "You were born into transition rather than certainty.",
+    "Your beginning was modest, but deliberate."
+  ],
+  role: [
+    "You served as a watcher — observing patterns others ignored.",
+    "You carried responsibility without title.",
+    "You protected continuity during disruption."
+  ],
+  life: [
+    "Your life centered on restraint, patience, and endurance.",
+    "You learned when to act by learning when not to.",
+    "Others depended on your calm during uncertainty."
+  ],
+  death: [
+    "Your passing came through exhaustion rather than violence.",
+    "The body gave way once the duty was fulfilled.",
+    "You did not fear the end — you recognized it."
+  ],
+  echo: [
+    "You still sense patterns before they form.",
+    "You feel older than urgency.",
+    "You are drawn to meaning, not noise."
+  ]
+};
+
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+
+function drawPortrait(){
+  const c=document.getElementById("portrait");
+  const x=c.getContext("2d");
+  x.clearRect(0,0,c.width,c.height);
+  x.fillStyle="#020409";
+  x.fillRect(0,0,c.width,c.height);
+  for(let i=0;i<140;i++){
+    x.fillStyle=`rgba(73,199,255,${Math.random()*0.08})`;
+    x.beginPath();
+    x.arc(Math.random()*c.width,Math.random()*c.height,Math.random()*30,0,Math.PI*2);
+    x.fill();
+  }
+}
+
+function reveal(id,title,text,delay){
+  setTimeout(()=>{
+    const el=document.getElementById(id);
+    el.innerHTML=`<h3>${title}</h3><p>${text}</p>`;
+    el.classList.add("show");
+  },delay);
+}
+
+function begin(){
+  drawPortrait();
+  reveal("origin","Origin",pick(data.origin),600);
+  reveal("role","Role",pick(data.role),1400);
+  reveal("life","Life Pattern",pick(data.life),2200);
+  reveal("death","Passing",pick(data.death),3000);
+  reveal("echo","Present Echo",pick(data.echo),3800);
+  setTimeout(()=>{
+    document.getElementById("download").style.display="block";
+    document.getElementById("share").style.display="block";
+  },4600);
+}
+
+function download(){
+  const text=document.querySelector(".card").innerText;
+  const b=new Blob([text],{type:"text/plain"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(b);
+  a.download="clarvoint-reflection.txt";
+  a.click();
+}
+
+function share(){
+  if(navigator.share){
+    navigator.share({title:"Clarvoint",text:"My past-life reflection",url:location.href});
+  } else {
+    alert("Copy this link to share.");
+  }
+}
+
+if("serviceWorker"in navigator){
+  navigator.serviceWorker.register(URL.createObjectURL(new Blob([`
+    self.addEventListener('fetch',e=>{})
+  `],{type:'text/javascript'})));
+}
+</script>
+</body>
+</html>html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Clarvoint</title>
